@@ -1,0 +1,30 @@
+name: Monitor de Tasas Horario
+
+on:
+  schedule:
+    # Se ejecuta al minuto 0 de cada hora
+    # 10-23 UTC = 06am-07pm VET
+    # 00-04 UTC = 08pm-12am VET
+    - cron: '0 10-23,0-4 * * *'
+  workflow_dispatch: # Permite botón de prueba manual
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v3
+
+      - name: Instalar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Instalar librerias
+        run: pip install -r requirements.txt
+
+      - name: Ejecutar Script
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python reporte_automatico.py
