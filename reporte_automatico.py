@@ -59,13 +59,20 @@ def ejecutar_consulta():
         gap = ((binance - bcv) / bcv) * 100
         factor = bcv / binance 
         
-        # --- AJUSTE MANUAL DE HORA (VENEZUELA ES UTC-4) ---
-        # Obtenemos la hora UTC actual y le restamos 4 horas
+        # --- AJUSTE MANUAL DE HORA ---
         utc_ahora = datetime.datetime.now(datetime.timezone.utc)
         hora_venezuela = utc_ahora - datetime.timedelta(hours=4)
         ahora = hora_venezuela.strftime("%d/%m/%Y %I:%M %p")
-        # -------------------------------------------------
         
+        # --- LÓGICA DEL CSV (CON FACTOR) ---
+        archivo_csv = "historial.csv"
+        existe = os.path.isfile(archivo_csv)
+        with open(archivo_csv, "a", encoding='utf-8') as f:
+            if not existe:
+                f.write("Fecha,BCV,Binance,Brecha_Porcentaje,Factor\n")
+            f.write(f"{ahora},{bcv},{binance},{gap:.2f},{factor:.4f}\n")
+        
+        # --- MENSAJE TELEGRAM ---
         texto = (
             f"📊 *REPORTE DE TASAS*\n"
             f"📅 {ahora}\n\n"
@@ -76,7 +83,7 @@ def ejecutar_consulta():
         )
         
         bot.send_message(CHAT_ID, texto, parse_mode="Markdown")
-        print(f"Reporte enviado con éxito. Hora: {ahora}")
+        print(f"Reporte enviado y CSV actualizado con factor. Hora: {ahora}")
     else:
         print("No se pudo obtener la tasa de Binance.")
 

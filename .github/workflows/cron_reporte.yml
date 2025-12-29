@@ -2,15 +2,15 @@ name: Monitor de Tasas Horario
 
 on:
   schedule:
-    # Se ejecuta al minuto 0 de cada hora
-    # 10-23 UTC = 06am-07pm VET
-    # 00-04 UTC = 08pm-12am VET
     - cron: '0 10-23,0-4 * * *'
-  workflow_dispatch: # Permite botón de prueba manual
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Permiso crucial para que el bot pueda subir el CSV actualizado
+      
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v3
@@ -28,3 +28,12 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python reporte_automatico.py
+
+      - name: Guardar cambios en el CSV (Commit y Push)
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add historial.csv
+          # Solo hace commit si hay cambios para evitar errores
+          git commit -m "Actualización historial.csv [skip ci]" || echo "Sin cambios"
+          git push
